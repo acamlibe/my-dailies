@@ -2,19 +2,14 @@ package com.mydailies;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.GridLayout;
+
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Named;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
 import net.runelite.api.Client;
@@ -74,61 +69,132 @@ public class MyDailiesPanel extends PluginPanel {
 
     void init()
     {
-        setLayout(new BorderLayout());
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setBorder(new EmptyBorder(10, 10, 10, 10));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, this.getPreferredSize().height));
 
-        JPanel versionPanel = new JPanel();
-        versionPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        versionPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        versionPanel.setLayout(new GridLayout(0, 1));
+        JLabel title = new JLabel("My Dailies");
+        title.setFont(new Font("Verdana", Font.ITALIC, 18));
+        title.setForeground(Color.white);
 
-        final Font smallFont = FontManager.getRunescapeSmallFont();
+        JLabel dailyStatus = new JLabel("Completed 5/10 Daily Challenges");
+        dailyStatus.setForeground(Color.green);
 
-        JLabel version = new JLabel(htmlLabel("RuneLite version: ", runeliteVersion));
-        version.setFont(smallFont);
+        add(title);
+        add(Box.createRigidArea(new Dimension(0, 5))); // 10px horizontal gap
 
-        JLabel revision = new JLabel();
-        revision.setFont(smallFont);
+        add(dailyStatus);
 
-        String engineVer = engineVer = String.format("Rev %d", client.getRevision());
+        add(Box.createRigidArea(new Dimension(0, 20))); // 10px horizontal gap
 
-        revision.setText(htmlLabel("Oldschool revision: ", engineVer));
+        JPanel activityPanel = new JPanel();
+        activityPanel.setLayout(new BoxLayout(activityPanel, BoxLayout.Y_AXIS));
+        activityPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel launcher = new JLabel(htmlLabel("Launcher version: ", MoreObjects
-                .firstNonNull(RuneLiteProperties.getLauncherVersion(), "Unknown")));
-        launcher.setFont(smallFont);
+        Border normalLine = BorderFactory.createLineBorder(Color.gray, 1);          // 2px border
+        Border hoverLine = BorderFactory.createLineBorder(Color.white, 1);          // 2px border
+        Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 10);      // top, left, bottom, right padding
 
-        loggedLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-        loggedLabel.setFont(smallFont);
+        Border normalBorder = BorderFactory.createCompoundBorder(normalLine, padding);
+        Border hoverBorder = BorderFactory.createCompoundBorder(hoverLine, padding);
 
-        emailLabel.setForeground(Color.WHITE);
-        emailLabel.setFont(smallFont);
-        emailLabel.enableAutoLinkHandler(false);
-        emailLabel.addHyperlinkListener(e ->
-        {
-            if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType()) && e.getURL() != null)
-            {
-                if (e.getURL().toString().equals(RUNELITE_LOGIN))
-                {
-                    executor.execute(sessionManager::login);
+
+        for (int i = 0; i < 20; i++) {
+            JPanel itemPane = new JPanel();
+
+            itemPane.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    itemPane.setBorder(hoverBorder);
+                    itemPane.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 }
-            }
-        });
 
-        versionPanel.add(version);
-        versionPanel.add(revision);
-        versionPanel.add(launcher);
-        versionPanel.add(Box.createGlue());
-        versionPanel.add(loggedLabel);
-        versionPanel.add(emailLabel);
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    itemPane.setBorder(normalBorder);
+                    itemPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                }
+            });
 
-        actionsContainer = new JPanel();
-        actionsContainer.setBorder(new EmptyBorder(10, 0, 0, 0));
-        actionsContainer.setLayout(new GridLayout(0, 1, 0, 10));
 
-        add(versionPanel, BorderLayout.NORTH);
-        add(actionsContainer, BorderLayout.CENTER);
+            itemPane.setBorder(normalBorder);
+
+            itemPane.setLayout(new BoxLayout(itemPane, BoxLayout.X_AXIS));
+            itemPane.setPreferredSize(new Dimension(itemPane.getPreferredSize().width, 50));
+            itemPane.setMinimumSize(new Dimension(itemPane.getMinimumSize().width, 50));
+            itemPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+            itemPane.setAlignmentX(Component.LEFT_ALIGNMENT); // important for BoxLayout
+
+            JLabel activityNameLabel = new JLabel("Barrows");
+            JLabel progressLabel = new JLabel("4/16");
+
+            itemPane.add(activityNameLabel);
+            itemPane.add(Box.createHorizontalGlue()); // pushes btn2 to middle
+            itemPane.add(progressLabel);
+
+            activityPanel.add(itemPane);
+            activityPanel.add(Box.createRigidArea(new Dimension(0, 10))); // 10px horizontal gap
+
+        }
+
+
+
+        add(activityPanel);
+
+
+//
+//        JPanel versionPanel = new JPanel();
+//        versionPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+//        versionPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+//        versionPanel.setLayout(new GridLayout(0, 1));
+//
+//        final Font smallFont = FontManager.getRunescapeSmallFont();
+//
+//        JLabel version = new JLabel(htmlLabel("RuneLite version: ", runeliteVersion));
+//        version.setFont(smallFont);
+//
+//        JLabel revision = new JLabel();
+//        revision.setFont(smallFont);
+//
+//        String engineVer = engineVer = String.format("Rev %d", client.getRevision());
+//
+//        revision.setText(htmlLabel("Oldschool revision: ", engineVer));
+//
+//        JLabel launcher = new JLabel(htmlLabel("Launcher version: ", MoreObjects
+//                .firstNonNull(RuneLiteProperties.getLauncherVersion(), "Unknown")));
+//        launcher.setFont(smallFont);
+//
+//        loggedLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+//        loggedLabel.setFont(smallFont);
+//
+//        emailLabel.setForeground(Color.WHITE);
+//        emailLabel.setFont(smallFont);
+//        emailLabel.enableAutoLinkHandler(false);
+//        emailLabel.addHyperlinkListener(e ->
+//        {
+//            if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType()) && e.getURL() != null)
+//            {
+//                if (e.getURL().toString().equals(RUNELITE_LOGIN))
+//                {
+//                    executor.execute(sessionManager::login);
+//                }
+//            }
+//        });
+//
+//        versionPanel.add(version);
+//        versionPanel.add(revision);
+//        versionPanel.add(launcher);
+//        versionPanel.add(Box.createGlue());
+//        versionPanel.add(loggedLabel);
+//        versionPanel.add(emailLabel);
+//
+//        actionsContainer = new JPanel();
+//        actionsContainer.setBorder(new EmptyBorder(10, 0, 0, 0));
+//        actionsContainer.setLayout(new GridLayout(0, 1, 0, 10));
+//
+//        add(versionPanel, BorderLayout.NORTH);
+//        add(actionsContainer, BorderLayout.CENTER);
 
         updateLoggedIn();
         eventBus.register(this);
